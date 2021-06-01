@@ -1,9 +1,9 @@
 div {
     text-align: center;
-    /* display: flex; */
 }
-canvas {
-	background-color: white;
+
+#mapMaker {
+	background-color: seashell;
     border-radius: 5px;
     margin: 0;
     padding: 0; 
@@ -12,6 +12,12 @@ canvas {
     left: 0;
 }
 
-#divmapmaker {
-    display: flex;
+#positioning {
+	background-color: seashell;
+    border-radius: 5px;
+    margin: 0;
+    padding: 0; 
+    position: absolute; 
+    top: 0;
+    left: 0;
 }
