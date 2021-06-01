@@ -488,12 +488,17 @@ function next() {
 		scalingToWindowSize();
 		draw();
 	} else if (beaconPhase) {
+		let b = false;
 		beacons.forEach(beacon => {
 			if (beacon.pos <= 0) {
-				alert('Nincs megadva az összes jeladó pozíciója!');
+				b = true;
 				return;
 			}
 		});
+		if (b) {
+			alert('Nincs megadva az összes jeladó pozíciója!');
+			return;
+		}
 		scalingBeacons();
 		beaconPhase = false;
 		drawAll = true;
@@ -536,7 +541,7 @@ function back() {
 
 /* Törlés gombra való kattintásra */
 function clear() {
-	if (confirm("Törli az eddigi rajzot?")) {
+	if ((coords.length > 0) && confirm("Törli az eddigi rajzot?")) {
 		prevX, currX, prevY, currY = undefined;
 		coords = [];
 		beacons = [];
@@ -595,18 +600,19 @@ canvas.addEventListener("mouseout", function (e) {
 let drawingCoords = []
 
 function takeApart() {
-	if (drawingCoords.length <= 15) return;
+	console.log(drawingCoords.length);
+	if (drawingCoords.length <= 20) return;
 	let breakPoints = [];
 	let direction;
-	if (Math.abs(drawingCoords[0].x - drawingCoords[15].x) >
-		Math.abs(drawingCoords[0].y - drawingCoords[15].y)) {
+	if (Math.abs(drawingCoords[0].x - drawingCoords[20].x) >
+		Math.abs(drawingCoords[0].y - drawingCoords[20].y)) {
 			direction = 'horizontal';
 	} else {
 		direction = 'vertical';
 	}
-	for (let i = 15; i < drawingCoords.length - 16; i += 15) {
-		if (Math.abs(drawingCoords[i].x - drawingCoords[i + 15].x) >
-			Math.abs(drawingCoords[i].y - drawingCoords[i + 15].y)) {
+	for (let i = 20; i < drawingCoords.length - 21; i += 20) {
+		if (Math.abs(drawingCoords[i].x - drawingCoords[i + 20].x) >
+			Math.abs(drawingCoords[i].y - drawingCoords[i + 20].y)) {
 				if (direction === 'vertical') {
 					breakPoints.push({x: drawingCoords[i].x, y: drawingCoords[i].y});
 				}
@@ -624,7 +630,7 @@ function takeApart() {
 
 	coords.splice(-1,1);
 	coords.push({firstPoint: {x: drawingCoords[0].x, y: drawingCoords[0].y}, secondPoint: {x: breakPoints[0].x, y: breakPoints[0].y}, size: 0, direction: '' });
-	for (let i = 0; i < breakPoints.length - 2; ++i) {
+	for (let i = 0; i < breakPoints.length - 1; ++i) {
 		coords.push({firstPoint: {x: breakPoints[i].x, y: breakPoints[i].y}, secondPoint: {x: breakPoints[i + 1].x, y: breakPoints[i + 1].y}, size: 0, direction: '' });
 	}
 	coords.push({firstPoint: {x: breakPoints[breakPoints.length - 1].x, y: breakPoints[breakPoints.length - 1].y}, secondPoint: {x: drawingCoords[drawingCoords.length - 1].x, y: drawingCoords[drawingCoords.length - 1].y}, size: 0, direction: '' });
@@ -675,13 +681,13 @@ function paintCoord(ms, e) {
 		if (ms == 'up') {
 			currX = e.clientX - canvas.offsetLeft;
 			currY = e.clientY - canvas.offsetTop;
+			secondPoint = { x: currX, y: currY };
+			coords.push({ firstPoint, secondPoint, size: 0, direction: '' });
 			/* ---- */
 			drawingCoords.push({ x: currX, y: currY });
 			/* ---- */
 			takeApart();
 			drawingCoords = [];
-			secondPoint = { x: currX, y: currY };
-			coords.push({ firstPoint, secondPoint, size: 0, direction: '' });
 			fPB = false;
 		}
 		if (ms === 'out') {
