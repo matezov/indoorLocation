@@ -596,6 +596,28 @@ canvas.addEventListener("mouseout", function (e) {
 	}
 }, false);
 
+/* Érintés eseménykezelők rajzoláshoz  */
+canvas.addEventListener("touchmove", function (e) {
+	if (drawingPhase) {
+		paintCoord('move', e);
+	}
+}, false);
+canvas.addEventListener("touchstart", function (e) {
+	if (drawingPhase) {
+		paintCoord('down', e);
+	}
+}, false);
+canvas.addEventListener("touchend", function (e) {
+	if (drawingPhase) {
+		paintCoord('up', e);
+	}
+}, false);
+canvas.addEventListener("touchcancel", function (e) {
+	if (drawingPhase) {
+		paintCoord('out', e);
+	}
+}, false);
+
 
 let drawingCoords = []
 
@@ -637,6 +659,24 @@ function takeApart() {
 
 	console.log(breakPoints);
 	console.log(coords);
+}
+
+function onedirection() {
+	for (let i = 0; i < coords.length - 1; ++i) {
+		if (coords[i].direction === coords[i + 1].direction) {
+			switch (coords[i].direction) {
+				case 'North':
+
+					break;
+				case 'South':
+					break;
+				case 'West':
+					break;
+				case 'East':
+					break;
+			}
+		}
+	}
 }
 
 /*  -- Kézi rajzolás -- */
@@ -690,7 +730,9 @@ function paintCoord(ms, e) {
 			drawingCoords = [];
 			fPB = false;
 		}
-		if (ms === 'out') {
+		if (ms === 'out' || currY > canvas.height * 0.9) {
+			drawingCoords = [];
+			coords.splice(-1, 1);
 			fPB = false;
 		}
 		flag = false;
