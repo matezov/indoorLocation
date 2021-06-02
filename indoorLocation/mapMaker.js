@@ -599,24 +599,86 @@ canvas.addEventListener("mouseout", function (e) {
 /* Érintés eseménykezelők rajzoláshoz  */
 canvas.addEventListener("touchmove", function (e) {
 	if (drawingPhase) {
-		paintCoord('move', e);
+		paintCoord2('move', e);
 	}
 }, false);
 canvas.addEventListener("touchstart", function (e) {
 	if (drawingPhase) {
-		paintCoord('down', e);
+		paintCoord2('down', e);
 	}
 }, false);
 canvas.addEventListener("touchend", function (e) {
 	if (drawingPhase) {
-		paintCoord('up', e);
+		paintCoord2('up', e);
 	}
 }, false);
 canvas.addEventListener("touchcancel", function (e) {
 	if (drawingPhase) {
-		paintCoord('out', e);
+		paintCoord2('out', e);
 	}
 }, false);
+
+function paintCoord2(ms, e) {
+	if (e.touches[0].clientY > canvas.height*0.9) return;
+	if (!drawingPhase) return;
+	if (ms === 'down') {
+		prevX = currX;
+		prevY = currY;
+		currX = e.touches[0].clientX - canvas.offsetLeft;
+		currY = e.touches[0].clientY - canvas.offsetTop;
+
+		/* ---- */
+		drawingCoords.push({ x: currX, y: currY });
+		/* ---- */
+
+		if (!fPB) {
+			firstPoint = { x: currX, y: currY };
+			fPB = true;
+		}
+
+		flag = true;
+		dot_flag = true;
+		if (dot_flag) {
+			context.beginPath();
+			context.fillStyle = "black";
+			context.fillRect(currX, currY, 2, 2);
+			context.closePath();
+			dot_flag = false;
+		}
+	}
+	if (ms === 'up' || ms === "out") {
+		if (ms == 'up') {
+			currX = e.touches[0].clientX - canvas.offsetLeft;
+			currY = e.touches[0].clientY - canvas.offsetTop;
+			secondPoint = { x: currX, y: currY };
+			coords.push({ firstPoint, secondPoint, size: 0, direction: '' });
+			/* ---- */
+			drawingCoords.push({ x: currX, y: currY });
+			/* ---- */
+			takeApart();
+			drawingCoords = [];
+			fPB = false;
+		}
+		if (ms === 'out' || currY > canvas.height * 0.9) {
+			drawingCoords = [];
+			coords.splice(-1, 1);
+			fPB = false;
+		}
+		flag = false;
+	}
+	if (ms === 'move') {
+		if (flag) {
+			prevX = currX;
+			prevY = currY;
+			currX = e.touches[0].clientX - canvas.offsetLeft;
+			currY = e.touches[0].clientY - canvas.offsetTop;
+			/* ---- */
+			drawingCoords.push({ x: currX, y: currY });
+			/* ---- */
+			draw();
+		}
+	}
+}
 
 
 let drawingCoords = []
