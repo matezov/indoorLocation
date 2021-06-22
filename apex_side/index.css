@@ -1,0 +1,13 @@
+div {
+    text-align: center;
+}
+
+#mapMaker {
+	background-color: seashell;
+    border-radius: 5px;
+    margin: 0;
+    padding: 0; 
+    position: absolute; 
+    top: 0;
+    left: 0;
+}
