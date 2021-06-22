@@ -1,24 +1,42 @@
 function setProduct(index, e) {
 
-    for (let i = 0; i < furnitures[index].products.length; ++i) {
-		if (e.layerX > furnitures[index].products[i].x - 15 && e.layerX < furnitures[index].products[i].x + 15
-			&& e.layerY > furnitures[index].products[i].y - 15 && e.layerY < furnitures[index].products[i].y + 15) {
-            if (furnitures[index].products[i].name !== '') {
-                alert(furnitures[index].products[i].name);
-            } else {
+    const point = {x: e.layerX, y: e.layerY};
+
+    for (let i = 0; i < furnitures[index].separators.length; ++i) {
+        if (i === 0) {
+            const obj = [{firstPoint: furnitures[index].info.start.firstPoint, secondPoint: furnitures[index].info.start.secondPoint},
+            {firstPoint: furnitures[index].separators[i].firstPoint, secondPoint: furnitures[index].separators[i].secondPoint}];
+            if (inObject(point, obj)) {
                 let name = prompt('Név:');
                 if (name !== null) {
-                    furnitures[index].products[i].name = name;
+                    furnitures[index].products[i].stuffHere.push(name);
                 }
             }
-			return;
-		}
+        } else {
+            const obj = [{firstPoint: furnitures[index].separators[i - 1].firstPoint, secondPoint: furnitures[index].separators[i - 1].secondPoint},
+            {firstPoint: furnitures[index].separators[i].firstPoint, secondPoint: furnitures[index].separators[i].secondPoint}];
+            if (inObject(point, obj)) {
+                let name = prompt('Név:');
+                if (name !== null) {
+                    furnitures[index].products[i].stuffHere.push(name);
+                }
+            }
+        }
+    }
+
+    
+    const obj = [{ firstPoint: furnitures[index].separators[furnitures[index].separators.length - 1].firstPoint, secondPoint: furnitures[index].separators[furnitures[index].separators.length - 1].secondPoint },
+    { firstPoint: furnitures[index].info.end.firstPoint, secondPoint: furnitures[index].info.end.secondPoint }];
+    if (inObject(point, obj)) {
+        let name = prompt('Név:');
+        if (name !== null) {
+            furnitures[index].products[furnitures[index].separators.length - 1].stuffHere.push(name);
+        }
     }
     
-	furnitures[index].products.push({ x: e.clientX, y: e.clientY, wall: index, name: ''});
+	// furnitures[index].products.push({ x: e.clientX, y: e.clientY, wall: index, name: ''});
 	draw();
 }
-
 
 function inObject(point, objCoord) {
 
@@ -53,3 +71,4 @@ function inObject(point, objCoord) {
 
     return b;
 }
+

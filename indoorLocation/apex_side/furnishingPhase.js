@@ -8,11 +8,10 @@ function placeSomething() {
     nearest_walls.horizontal.secondPoint = {x: (furniture[nearest_walls.horizontal.furniture_index].firstPoint.x + furniture[nearest_walls.horizontal.furniture_index].secondPoint.x) / 2, y: coords[nearest_walls.horizontal.wall_index].firstPoint.y};
     nearest_walls.horizontal.dist = 0;
 
-    nearest_walls.vertical.firstPoint = {x: furniture[nearest_walls.vertical.furniture_index].firstPoint.x,y: (furniture[nearest_walls.vertical.furniture_index].firstPoint.y + furniture[nearest_walls.vertical.furniture_index].secondPoint.y) / 2};
+    nearest_walls.vertical.firstPoint = {x: furniture[nearest_walls.vertical.furniture_index].firstPoint.x, y: (furniture[nearest_walls.vertical.furniture_index].firstPoint.y + furniture[nearest_walls.vertical.furniture_index].secondPoint.y) / 2};
     nearest_walls.vertical.secondPoint = {x: coords[nearest_walls.vertical.wall_index].firstPoint.x, y: (furniture[nearest_walls.vertical.furniture_index].firstPoint.y + furniture[nearest_walls.vertical.furniture_index].secondPoint.y) / 2};
     nearest_walls.vertical.dist = 0;
-
-    furnitures.push({name: name_prompt ,data: furniture, products: [], distance_from_walls: nearest_walls});
+    furnitures.push({name: name_prompt ,data: furniture, products: [], separators: [], info: {direction: '', start: {x: 0, y: 0}, end: {x: 0, y: 0}}, distance_from_walls: nearest_walls});
 }
 
 /* Megkeresi a legközelebbi függőleges és vízszintes falat az objektumhoz */
@@ -182,33 +181,31 @@ function squareFurniture() {
 }
 
 /* scale_permanent -> in mapMaker.js */
-/*  */
+/* Arányosan felrajzolja a berendezéseket */
 function scaleFurnitures() {
 
     for (let i = 0; i < furnitures.length; ++i) {
 
         let n = 0, e = 0, s = 0, w = 0;	// sum(kül. irányú falak)
-        furnitures[i].data.forEach(coord => {
-            switch (coord.direction) {
+        furnitures[i].data.forEach(f => {
+            switch (f.direction) {
                 case 'North':
-                    n += coord.size;
+                    n += parseInt(f.size);
                     break;
                 case 'East':
-                    e += coord.size;
+                    e += parseInt(f.size);
                     break;
                 case 'South':
-                    s += coord.size;
+                    s += parseInt(f.size);
                     break;
                 case 'West':
-                    w += coord.size;
+                    w += parseInt(f.size);
                     break;
             }
         });
 
         const lor = leftOrRight(furnitures[i].distance_from_walls.vertical);
         const vind = furnitures[i].distance_from_walls.vertical.furniture_index;
-        
-        console.log(vind)
 
         if (lor === 'left') {
             switch (furnitures[i].data[vind].direction) {
@@ -282,8 +279,6 @@ function scaleFurnitures() {
             }
         }
         furnitures[i].data[furnitures[i].data.length - 1].secondPoint = furnitures[i].data[0].firstPoint;
-        
-        console.log(furnitures[i].data)
 
         const tob = topOrBottom(furnitures[i].distance_from_walls.horizontal);
         const hind = furnitures[i].distance_from_walls.horizontal.furniture_index;
@@ -302,9 +297,66 @@ function scaleFurnitures() {
             }
         }
 
-    }
-    
+        /* elválasztások a polcokon */
+        if (w > n) {
+            furnitures[i].products = divideIntoPieces(furnitures[i], w);
+            let separations = [];
+            let startPoint = topLeftCoordOfFurniture(furnitures[i]);
+            let fp = {x: startPoint.x, y: startPoint.y};
+            let sp = {x: startPoint.x, y: startPoint.y + n * scale_permanent};
+            let infostartpoint = {firstPoint: fp, secondPoint: sp};
+            for (let k = 0; k < furnitures[i].products.length; ++k) {
+                fp = {x: startPoint.x + (k + 1) * scale_permanent, y: startPoint.y};
+                sp = {x: startPoint.x + (k + 1) * scale_permanent, y: startPoint.y + n * scale_permanent};
+                separations.push({firstPoint: fp, secondPoint: sp});
+            }
+            fp = {x: startPoint.x + (furnitures[i].products.length + 1) * scale_permanent, y: startPoint.y};
+            sp = {x: startPoint.x + (furnitures[i].products.length + 1) * scale_permanent, y: startPoint.y + n * scale_permanent};
+            let infoendpoint = {firstPoint: fp, secondPoint: sp};
+            furnitures[i].info = {direction: 'horizontal', start: infostartpoint, end: infoendpoint}
+            furnitures[i].separators = separations;
+        } else {    
+            furnitures[i].products = divideIntoPieces(furnitures[i], n);
+            let separations = [];
+            let startPoint = topLeftCoordOfFurniture(furnitures[i]);
+            let fp = {x: startPoint.x, y: startPoint.y};
+            let sp = {x: startPoint.x + w * scale_permanent, y: startPoint.y};
+            let infostartpoint = {firstPoint: fp, secondPoint: sp};
+            for (let k = 0; k < furnitures[i].products.length; ++k) {
+                fp = {x: startPoint.x, y: startPoint.y + (k + 1) * scale_permanent};
+                sp = {x: startPoint.x + w * scale_permanent, y: startPoint.y + (k + 1) * scale_permanent};
 
+                separations.push({firstPoint: fp, secondPoint: sp});
+            }
+            fp = {x: startPoint.x, y: startPoint.y + (furnitures[i].products.length + 1) * scale_permanent};
+            sp = {x: startPoint.x + w * scale_permanent, y: startPoint.y + (furnitures[i].products.length + 1) * scale_permanent};
+            let infoendpoint = {firstPoint: fp, secondPoint: sp};
+            furnitures[i].info = {direction: 'vertical', start: infostartpoint, end: infoendpoint}
+            furnitures[i].separators = separations;
+        }
+    }
+}
+
+function topLeftCoordOfFurniture(furniture) {
+    let mostLeft = furniture.data[0].firstPoint.x < furniture.data[0].secondPoint.x ? furniture.data[0].firstPoint.x : furniture.data[0].secondPoint.x;
+    for (let i = 1; i < furniture.data.length; ++i) {
+        if (furniture.data[i].firstPoint.x < mostLeft) {
+            mostLeft = furniture.data[i].firstPoint.x;
+        }
+        if (furniture.data[i].secondPoint.x < mostLeft) {
+            mostLeft = furniture.data[i].secondPoint.x;
+        }
+    }
+    let mostTop = furniture.data[0].firstPoint.y < furniture.data[0].secondPoint.y ? furniture.data[0].firstPoint.y : furniture.data[0].secondPoint.y;
+    for (let i = 1; i < furniture.data.length; ++i) {
+        if (furniture.data[i].firstPoint.y < mostLeft) {
+            mostTop = furniture.data[i].firstPoint.y;
+        }
+        if (furniture.data[i].secondPoint.y < mostLeft) {
+            mostTop = furniture.data[i].secondPoint.y;
+        }
+    }
+    return {x: mostLeft, y: mostTop};
 }
 
 /* bal vagy jobb oldalon van e a legközelebbi fal */
@@ -323,4 +375,14 @@ function topOrBottom(coord) {
     } else {
         return 'bottom';
     }
+}
+
+function divideIntoPieces(furniture, size) {
+    let productPlaces = [];
+
+    for (let i = 0; i < size - 1; ++i) {
+        productPlaces.push({stuffHere: []});
+    }
+
+    return productPlaces;
 }

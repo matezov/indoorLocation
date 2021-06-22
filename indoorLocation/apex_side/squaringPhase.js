@@ -128,7 +128,7 @@ function scalingToWindowSize() {
 
 	for (let i = 0; i < coords.length; ++i) {
 		coords[i].firstPoint.y = coords[i].firstPoint.y + topY;
-		//coords[i].secondPoint.y = coords[i].secondPoint.y + topY; ??????????? miért csinálja meg e nélkül ????? TODO
+		//coords[i].secondPoint.y = coords[i].secondPoint.y + topY;
 	}
 
 	// Középre igazítás

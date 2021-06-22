@@ -52,20 +52,20 @@ function getDistance(point1, point2) {
 /* Szétszedi azokat a falakat, amik "egyben" lettek felrajzolva */
 function takeApart() {
 
-	if (drawingCoords.length <= 15) return;
+	if (drawingCoords.length <= 10) return;
 	
 	let breakPoints = [];
 	let direction;
-	if (Math.abs(drawingCoords[0].x - drawingCoords[15].x) >
-		Math.abs(drawingCoords[0].y - drawingCoords[15].y)) {
+	if (Math.abs(drawingCoords[0].x - drawingCoords[10].x) >
+		Math.abs(drawingCoords[0].y - drawingCoords[10].y)) {
 			direction = 'horizontal';
 	} else {
 		direction = 'vertical';
 	}
 
-	for (let i = 15; i < drawingCoords.length - 16; i += 15) {
-		if (Math.abs(drawingCoords[i].x - drawingCoords[i + 15].x) >
-			Math.abs(drawingCoords[i].y - drawingCoords[i + 15].y)) {
+	for (let i = 10; i < drawingCoords.length - 11; i += 10) {
+		if (Math.abs(drawingCoords[i].x - drawingCoords[i + 10].x) >
+			Math.abs(drawingCoords[i].y - drawingCoords[i + 10].y)) {
 				if (direction === 'vertical') {
 					breakPoints.push({x: drawingCoords[i].x, y: drawingCoords[i].y});
 				}
@@ -100,7 +100,7 @@ function takeApart() {
 	
 }
 
-/* Visszaadja melyik irányba mutat a falvektora */
+/* Visszaadja melyik irányba mutat a fal vektora */
 function getDirection(coord) {
 	if (Math.abs(coord.firstPoint.x - coord.secondPoint.x) >
 		Math.abs(coord.firstPoint.y - coord.secondPoint.y)) {
@@ -118,7 +118,19 @@ function mergeTwoPoints(P1, P2) {
 	const minCoordY = Math.min(P1.firstPoint.y, P1.secondPoint.y, P2.firstPoint.y, P2.secondPoint.y);
 	const maxCoordY = Math.max(P1.firstPoint.y, P1.secondPoint.y, P2.firstPoint.y, P2.secondPoint.y);
 
-	if (getDirection(P1) === 'horizontal') {
+	console.log('minx: ',minCoordX);
+	console.log('miny: ',minCoordY);
+	console.log('maxx: ',maxCoordX);
+	console.log('maxy: ',maxCoordY);
+
+	console.log({
+		firstPoint: {x: minCoordX, y: minCoordY},
+		secondPoint: {x: maxCoordX, y: maxCoordY},
+		size: 0,
+		direction: ''
+	})
+
+	if (getDirection(P2) === 'horizontal') {
 		return {
 			firstPoint: {x: minCoordX, y: minCoordY},
 			secondPoint: {x: maxCoordX, y: minCoordY},
@@ -136,29 +148,50 @@ function mergeTwoPoints(P1, P2) {
 }
 
 /* Egybeolvassza az egymás melletti "egyirányú" falakat TODO */
-function mergeSameDirection() {
+function mergeSameDirections() {
 
 	let merged_coords = [];
-
-	console.log(getDirection(coords[coords.length - 1]) === getDirection(coords[0]))
-	if (getDirection(coords[coords.length - 1]) === getDirection(coords[0])) {
-		merged_coords.push(mergeTwoPoints(coords[coords.length - 1], coords[0]));
-		coords.splice(coords.length - 1, 1);
-	} else {
-		merged_coords.push(coords[0]);
-	}
+	
+	let b = false;
 
 	for (let i = 0; i < coords.length - 1; ++i) {
-		console.log(getDirection(coords[i]) === getDirection(coords[i + 1]))
 		if (getDirection(coords[i]) === getDirection(coords[i + 1])) {
 			merged_coords.push(mergeTwoPoints(coords[i], coords[i + 1]));
-			coords.splice(i+1, 1)
+			console.log(merged_coords);
+			if (i + 1 === coords.length) {
+				b = true;
+			}
+			coords.splice(i + 1, 1)
 		} else {
 			merged_coords.push(coords[i]);
 		}
 	}
 
-	console.log(coords);
-	coords = merged_coords;
+	if (getDirection(coords[coords.length - 1]) === getDirection(coords[0])) {
+		merged_coords.push(mergeTwoPoints(coords[coords.length - 1], coords[0]));
+		merged_coords.splice(0, 1)
+	} else {
+		if (!b) {
+			merged_coords.push(coords[coords.length - 1]);
+		} 
+	}
 
+	coords = merged_coords;
+	console.log(coords);
+
+}
+
+/* Vissza adja van e két nem merőleges fal egymás után */
+function isAnySameDirection() {
+	for (let i = 0; i < coords.length - 1; ++i) {
+		if (getDirection(coords[i]) === getDirection(coords[i + 1])) {
+			return false;
+		}
+	}
+
+	if (getDirection(coords[coords.length - 1]) === getDirection(coords[0])) {
+		return false;
+	}
+
+	return true;
 }

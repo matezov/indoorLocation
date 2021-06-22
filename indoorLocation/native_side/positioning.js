@@ -169,14 +169,14 @@ function scalePlan() {
 	}
 }
 
-/* Visszaadja a 3 legerősebb jellel rendelkező jeladót. arr -> {x,y,d} */
+/* Visszaadja a 3 legerősebb jellel rendelkező jeladót. arr -> [{x,y,d}] */
 function strongestSigns(arr) {
 	let max = [];
 
 	for (let i = 0; i < 3; ++i) {
 		let curr_max = arr[0];
 		let curr_index = 0;
-		for (let j = 0; j < arr.length; ++j) {
+		for (let j = 1; j < arr.length; ++j) {
 			if (curr_max.d < arr[j].d) {
 				curr_max = arr[j];
 				curr_index = j;
@@ -189,8 +189,6 @@ function strongestSigns(arr) {
 	return max;
 }
 
-/* const arr = [{x:1,y:1,d:10},{x:2,y:2,d:21},{x:3,y:3,d:50},{x:4,y:4,d:32},{x:1,y:2,d:42},{x:1,y:2,d:4},{x:1,y:2,d:23},{x:1,y:2,d:324}]; 
-console.log(strongestSigns(arr)); */
 
 /* function trilateration(P1, P2, P3) {
 
@@ -205,7 +203,7 @@ console.log(strongestSigns(arr)); */
 // console.log(trilateration({x: plan.beacons[0].x ,y: plan.beacons[0].y,r: 50.00},{x: plan.beacons[1].x ,y: plan.beacons[1].y,r: 36.06},{x: plan.beacons[2].x ,y: plan.beacons[2].y,r: 68.83}));
 // console.log(trilateration({x: 100 ,y: 100,r: 50.00},{x: 160 ,y: 120,r: 36.06},{x: 70 ,y: 150,r: 68.83}));
 
-/* 3 pontot távolsággal Pi = {x,y,r} alakban */
+/* 3 pontot távolsággal Pi = {x,y,r,d} alakban */
 function getPosition(P1, P2, P3) {
 	
 	const A = 2 * P2.x - 2 * P1.x
@@ -214,17 +212,15 @@ function getPosition(P1, P2, P3) {
 	const D = 2 * P3.x - 2 * P2.x
 	const E = 2 * P3.y - 2 * P2.y
 	const F = P2.r ** 2 - P3.r ** 2 - P2.x ** 2 + P3.x ** 2 - P2.y ** 2 + P3.y ** 2
-	const x = (C * E - F * B) / (E * A - B * D)
-	const y = (C * D - A * F) / (B * D - A * E)
+	const x = (C * E - F * B) / (E * A - B * D);
+	const y = (C * D - A * F) / (B * D - A * E);
 
 	return {x, y}
 }
-console.log(getPosition({x: plan.beacons[0].x ,y: plan.beacons[0].y,r: 50.00},{x: plan.beacons[1].x ,y: plan.beacons[1].y,r: 36.06},{x: plan.beacons[2].x ,y: plan.beacons[2].y,r: 68.83}));
-console.log(getPosition({x: 100 ,y: 100,r: 50.00},{x: 160 ,y: 120,r: 36.06},{x: 70 ,y: 150,r: 68.83}));
 
 function move(i) {
-	pos = getPosition({x: plan.beacons[0].x ,y: plan.beacons[0].y,r: 50.00 + c},{x: plan.beacons[1].x ,y: plan.beacons[1].y,r: 36.06 + c},{x: plan.beacons[2].x ,y: plan.beacons[2].y,r: 68.83 - c});
-	c += 2;
+	// pos = getPosition({x: plan.beacons[0].x ,y: plan.beacons[0].y,r: 50.00},{x: plan.beacons[1].x ,y: plan.beacons[1].y,r: 36.06},{x: plan.beacons[2].x ,y: plan.beacons[2].y,r: 68.83});
+	// pos = getPosition(max[0], max[1], max[2]);
 	draw();
 }
 
@@ -232,7 +228,11 @@ let c = 0;
 
 function init() {
 	scalePlan();
-	pos = getPosition({x: plan.beacons[0].x ,y: plan.beacons[0].y,r: 50.00},{x: plan.beacons[1].x ,y: plan.beacons[1].y,r: 36.06},{x: plan.beacons[2].x ,y: plan.beacons[2].y,r: 68.83});
+	let arr = [{x:1,y:1,r: 5,d:10},{x:2,y:2,r:5, d:21},{x:3,y:3,r: 5,d:50},{x:4,y:4,r: 5,d:32},{x:1,y:2,r: 5,d:42},{x:1,y:2,r: 5,d:4},{x:1,y:2,r: 5,d:23},{x:1,y:2,r: 5,d:324}]; 
+	const max_array = strongestSigns(arr);
+	//pos = getPosition({x: plan.beacons[0].x ,y: plan.beacons[0].y,r: 50.00},{x: plan.beacons[1].x ,y: plan.beacons[1].y,r: 36.06},{x: plan.beacons[2].x ,y: plan.beacons[2].y,r: 68.83});
+	console.log(max_array);
+	pos = getPosition(max_array[0],max_array[1],max_array[2])
 	draw();
 }
 

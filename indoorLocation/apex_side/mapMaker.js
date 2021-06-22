@@ -9,6 +9,7 @@ let beaconPhase;			// jeladókat lehet elhelyezni, megadni a méretét
 let furnishingPhase;		// berendezések elhelyezése
 let furnitureSizingPhase;	// berendezések méretezése
 let productPhase;			// termékeket lehet elhelyezni a polcokon
+let routePhase;
 let drawAll;				// kirajzol mindent a megadott méretek szerint a képernyőhöz arányosan, majd itt el lehet menteni
 
 let scale_permanent;		// arány
@@ -16,6 +17,7 @@ let scale_permanent;		// arány
 let coords;					// Falak kezdő-és végpontjaik, méreteik, irányaik
 let beacons;				// Jeladók pozíciója
 let furnitures;				// berendezés
+let routes;					// utak
 
 const buttonsize = canvas.height * 0.1;
 
@@ -23,12 +25,14 @@ function init() {
 	coords = [];					// Falak kezdő-és végpontjaik, méreteik, irányaik
 	beacons = [];					// Jeladók pozíciója
 	furnitures = [];
+	routes = [];
 	drawingPhase = true;			// kézi rajzolási fázis
 	squaringPhase = false;			// itt már nem lehet rajzolni, a falak méreteit lehet megadni
 	beaconPhase = false;			// jeladókat lehet elhelyezni, megadni a méretét
 	furnishingPhase = false;		// berendezések elhelyezése
 	furnitureSizingPhase = false;	// berendezések méretezése
 	productPhase = false;			// termékeket lehet elhelyezni a polcokon
+	routePhase = false;
 	drawAll = false;
 
 	draw();
@@ -282,6 +286,7 @@ canvas.onclick = function (e) {
 		}
 	}
 
+
 }
 
 /* Rajta van e a megadott pont a megadott falon */
@@ -319,6 +324,10 @@ function pointOnWall(point, wall) {
 function next() {
 	if (drawingPhase) {
 		searchNextWall();
+		while (!isAnySameDirection()) {
+			console.log('be');
+			mergeSameDirections();
+		}
 		console.log(coords.length);
 		if (coords.length < 4) {
 			alert('Kevés fal lett rajzolva!');
@@ -333,8 +342,10 @@ function next() {
 		squaringPhase = true;
 		draw();
 	} else if (squaringPhase) {
+		console.log('squaringPhase');
 		scalingToWindowSize();
 		draw();
+		console.log('beaconPhase');
 	} else if (beaconPhase) {
 		let b = false;
 		beacons.forEach(beacon => {
@@ -355,6 +366,7 @@ function next() {
 		if (!confirm('Akarsz hozzáadni berendezést?')) {
 			furnishingPhase = false;
 			drawAll = true;
+			console.log('furnishingPhase');
 		}
 		draw();
 	} else if (furnishingPhase) {
@@ -376,17 +388,28 @@ function next() {
 		if (confirm('Végeztél a berendezések hozzáadásával?')) {
 			furnishingPhase = false;
 			furnitureSizingPhase = true;
+			prevX = undefined, prevY = undefined;
+			currX = undefined, currY = undefined;
+			console.log('furnitureSizingPhase');
 		}
-		
 	} else if (furnitureSizingPhase) {
-		furnishingPhase = false;
-		productPhase = true;
 		scaleFurnitures();
+		furnitureSizingPhase = false;
+		productPhase = true;
 		draw();
+		console.log('productPhase');
 	} else if (productPhase) {
-		draw();
 		productPhase = false;
+		routePhase = true;
+		draw();
+		console.log('routePhase');
+		console.log(furnitures[0].products);
+	} else if (routePhase) {
+		prevX = undefined, prevY = undefined;
+		currX = undefined, currY = undefined;
+		routePhase = false;
 		drawAll = true;
+		doAllThingsWithRoutes();
 		draw();
 	} else if (drawAll) {
 		save();
@@ -423,20 +446,30 @@ function back() {
 			beaconPhase = true;
 			drawAll = false;
 		} else {
-			furnitures.splice(-1,1);
+			furnitures.splice(-1, 1);
 		}
 		draw();
 	} else if (furnitureSizingPhase) {
 		furnishingPhase = true;
 		furnitureSizingPhase = false;
+		draw();
 	} else if (productPhase) {
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		furnitureSizingPhase = true;
 		productPhase = false;
 		draw();
+	} else if (routePhase) {
+		if (routes.length === 0) {
+			productPhase = true;
+			routePhase = false;
+		} else {
+			routes.splice(-1, 1);
+		}
+		
+		draw();
 	} else if (drawAll) {
 		context.clearRect(0, 0, canvas.width, canvas.height);
-		productPhase = true;
+		routePhase = true;
 		drawAll = false;
 		draw();
 	}
@@ -450,11 +483,13 @@ function clear() {
 		beacons = [];
 		furnitures = [];
 		furniture = [];
+		routes = [];
 		drawingPhase = true;
 		squaringPhase = false;
 		beaconPhase = false;
 		furnishingPhase = false;
 		productPhase = false;
+		routePhase = false;
 		drawAll = false;
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		draw();
@@ -463,15 +498,18 @@ function clear() {
 
 /* TODO */
 function save() {
-	let tname = prompt('Alaprajz neve:');
-	const toSave = {
-		name: tname,
-		walls: coords,
-		beacons: beacons,
-		furnitures: furnitures
+	if (confirm('Menti az alaprajzot?')) {
+		let tname = prompt('Alaprajz neve:');
+		const toSave = {
+			name: tname,
+			walls: coords,
+			beacons: beacons,
+			furnitures: furnitures,
+			routes: routes
+		}
+		console.log(toSave);
+		download(JSON.stringify(toSave),'floorPlan.json','text/plain');
 	}
-	console.log(toSave);
-	download(JSON.stringify(toSave),'floorPlan.json','text/plain');
 }
 
 function download(content, fileName, contentType) {
@@ -484,27 +522,27 @@ function download(content, fileName, contentType) {
 
 /* Egér eseménykezelők rajzoláshoz  */
 canvas.addEventListener("mousemove", function (e) {
-	if (drawingPhase || furnishingPhase) {
+	if (drawingPhase || furnishingPhase || routePhase) {
 		paintCoord('move', e);
 	}
 }, false);
 canvas.addEventListener("mousedown", function (e) {
-	if (drawingPhase || furnishingPhase) {
+	if (drawingPhase || furnishingPhase || routePhase) {
 		paintCoord('down', e);
 	}
 }, false);
 canvas.addEventListener("mouseup", function (e) {
-	if (drawingPhase || furnishingPhase) {
+	if (drawingPhase || furnishingPhase || routePhase) {
 		paintCoord('up', e);
 	}
 }, false);
 canvas.addEventListener("mouseout", function (e) {
-	if (drawingPhase || furnishingPhase) {
+	if (drawingPhase || furnishingPhase || routePhase) {
 		paintCoord('out', e);
 	}
 }, false);
 
-/* Érintés eseménykezelők rajzoláshoz  */
+/* Érintés eseménykezelők rajzoláshoz */
 canvas.addEventListener("touchmove", function (e) {
 	if (drawingPhase || furnishingPhase) {
 		paintCoord2('move', e);
@@ -542,7 +580,7 @@ let furniture = [];
 /* Egérhez */
 function paintCoord(ms, e) {
 	if (e.clientY > canvas.height*0.9) return;
-	if (!drawingPhase && !furnishingPhase) return;
+	if (!drawingPhase && !furnishingPhase && !routePhase) return;
 	if (ms === 'down') {
 		prevX = currX;
 		prevY = currY;
@@ -576,6 +614,11 @@ function paintCoord(ms, e) {
 			}
 			if (furnishingPhase) {
 				furniture.push({ name: '', firstPoint, secondPoint, size: 0, direction: '' });
+			}
+			if (routePhase) {
+				//routes.push({firstPoint, secondPoint, size: 0, direction: ''});
+				let route = {firstPoint, secondPoint, size: 0, direction: ''}
+				routes.push(squareRoute(route));
 			}
 			drawingCoords.push({ x: currX, y: currY });
 			takeApart();
@@ -640,6 +683,9 @@ function paintCoord2(ms, e) {
 			}
 			if (furnishingPhase) {
 				furniture.push({ name: '', firstPoint, secondPoint, size: 0, direction: '' });
+			}
+			if (routePhase) {
+				routes.push({firstPoint, secondPoint, size: 0, direction: ''});
 			}
 			drawingCoords.push({ x: currX, y: currY });
 			takeApart();
@@ -890,13 +936,74 @@ const draw = function (e) {
 					context.fill();
 				}
 			});
+			context.strokeStyle = "black";
+			context.fillStyle = "black";
+			furnitures[i].separators.forEach(s => {
+				context.beginPath();
+				context.moveTo(s.firstPoint.x, s.firstPoint.y);
+				context.lineTo(s.secondPoint.x, s.secondPoint.y);
+				context.stroke();
+			});
 		}
 		context.strokeStyle = "black";
 		context.fillStyle = "black";
 
 	}
 
+	if (routePhase) {
+		// context.clearRect(0, 0, canvas.width, canvas.height);
+		imgMB.src = "svg_files/next.svg";
+		imgBB.src = "svg_files/arrow-left.svg";
+		imgDB.src = "svg_files/trash-fill.svg";
+
+		for (let i = 0; i < coords.length; ++i) {
+			context.beginPath();
+			context.moveTo(coords[i].firstPoint.x, coords[i].firstPoint.y);
+			context.lineTo(coords[i].secondPoint.x, coords[i].secondPoint.y);
+			context.stroke();
+			context.font = "15px Arial";
+			context.fillText(coords[i].size, (coords[i].firstPoint.x + coords[i].secondPoint.x) / 2, (coords[i].firstPoint.y + coords[i].secondPoint.y) / 2)
+		}
+
+		for (let i = 0; i < furnitures.length; ++i) {
+			context.strokeStyle = "black";
+			context.fillStyle = "black";
+			furnitures[i].data.forEach(furniture => {
+				context.beginPath();
+				context.moveTo(furniture.firstPoint.x, furniture.firstPoint.y);
+				context.lineTo(furniture.secondPoint.x, furniture.secondPoint.y);
+				context.stroke();
+				context.font = "15px Arial";
+				context.fillText(furniture.size, (furniture.firstPoint.x + furniture.secondPoint.x) / 2, (furniture.firstPoint.y + furniture.secondPoint.y) / 2)
+			});
+			furnitures[i].products.forEach(product => {
+				context.strokeStyle = "green";
+				context.fillStyle = "green";
+				context.beginPath();
+				context.arc(product.x, product.y, 5, 0, 2 * Math.PI);
+				if (product.name === '') {
+					context.stroke();
+				} else {
+					context.fill();
+				}
+			});
+		}
+
+		context.beginPath();
+		context.moveTo(prevX, prevY);
+		context.lineTo(currX, currY);
+		context.strokeStyle = "black";
+		context.lineWidth = 2;
+		context.stroke();
+		context.closePath();
+
+		context.strokeStyle = "black";
+		context.fillStyle = "black";
+
+	}
+
 	if (drawAll) {
+		context.clearRect(0, 0, canvas.width, canvas.height);
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		imgMB.src = "svg_files/floppy-disk.svg";
 		imgBB.src = "svg_files/arrow-left.svg";
@@ -968,6 +1075,13 @@ const draw = function (e) {
 				}
 			});
 		}
+
+		routes.forEach(route => {
+			context.beginPath();
+			context.moveTo(route.firstPoint.x, route.firstPoint.y);
+			context.lineTo(route.secondPoint.x, route.secondPoint.y);
+			context.stroke();
+		});
 
 		context.strokeStyle = "black";
 		context.fillStyle = "black";
