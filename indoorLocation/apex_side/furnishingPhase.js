@@ -21,24 +21,34 @@ function searchNearestWalls() {
     let nearest_wall_vertical = [];
 
     for (let i = 0; i < furniture.length; ++i) {
-        let indH = 0;
-        let indV = 0;
-        let distH = getDistance({x: 0, y: coords[indH].firstPoint.y}, {x: 0, y: furniture[i].firstPoint.y});
-        let distV = getDistance({x: coords[indV].firstPoint.x, y: 0}, {x: furniture[i].firstPoint.x, y: 0});
-        for (let j = 1; j < coords.length; ++j) {
-            if (getDirection(furniture[i]) === 'vertical' && (coords[j].direction === 'North' || coords[j].direction === 'South')  &&
-                isNextToItVertically(coords[j], furniture[i]) === true) {
+        let indH;
+        let indV;
+        let distH;
+        let distV;
+        if (getDirection(furniture[0]) === 'vertical') {
+            indH = 1;
+            indV = 0;
+            distH = getDistance({x: 0, y: coords[indH].firstPoint.y}, {x: 0, y: furniture[i].firstPoint.y});
+            distV = getDistance({x: coords[indV].firstPoint.x, y: 0}, {x: furniture[i].firstPoint.x, y: 0});
+        } else {
+            indH = 0;
+            indV = 1;
+            distH = getDistance({x: 0, y: coords[indH].firstPoint.y}, {x: 0, y: furniture[i].firstPoint.y});
+            distV = getDistance({x: coords[indV].firstPoint.x, y: 0}, {x: furniture[i].firstPoint.x, y: 0});
+        }
+        
+        for (let j = 2; j < coords.length; ++j) {
+            if (getDirection(furniture[i]) === 'vertical' && (coords[j].direction === 'North' || coords[j].direction === 'South') /*  &&
+                isNextToItVertically(coords[j], furniture[i]) === true */) {
                 if (distV > getDistance({x: coords[j].firstPoint.x, y: 0}, {x: furniture[i].firstPoint.x, y: 0})) {
                         indV = j;
                         distV = getDistance({x: coords[j].firstPoint.x, y: 0}, {x: furniture[i].firstPoint.x, y: 0});
                 }
-            }
-            if (getDirection(furniture[i]) === 'horizontal' && (coords[j].direction === 'East' || coords[j].direction === 'West')  &&
-                isNextToItHorizontally(coords[j], furniture[i]) === true ) {
+            } else if (getDirection(furniture[i]) === 'horizontal' && (coords[j].direction === 'East' || coords[j].direction === 'West')/*   &&
+                isNextToItHorizontally(coords[j], furniture[i]) === true  */) {
                 if (distH > getDistance({x: 0, y: coords[j].firstPoint.y}, {x: 0, y: furniture[i].firstPoint.y})) {
                         indH = j;
                         distH = getDistance({x: 0, y: coords[j].firstPoint.y}, {x: 0, y: furniture[i].firstPoint.y});
-                        
                 }
             }
         }
@@ -62,6 +72,9 @@ function searchNearestWalls() {
             nwv = nearest_wall_vertical[i];
         }
     }
+
+    console.log('h: ', nwh.wall_index);
+    console.log('v: ', nwv.wall_index);
 
     return {horizontal: nwh, vertical: nwv};
 }
@@ -367,7 +380,6 @@ function leftOrRight(coord) {
         return 'right';
     }
 }
-
 /* felső vagy alsó oldalon van e a legközelebbi fal */
 function topOrBottom(coord) {
     if (coord.firstPoint.y > coord.secondPoint.y) {
