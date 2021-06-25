@@ -4,7 +4,6 @@ context.canvas.width = window.innerWidth;
 context.canvas.height = window.innerHeight;
 
 let scale;
-
 let pos;
 let dest;
 let dest_name;
@@ -30,8 +29,8 @@ function strongestSigns(arr) {
 }
 
 canvas.onclick = function (e) {
-	if (e.layerX < pos.x + 10 && e.layerX > pos.x - 10 &&
-		e.layerY < pos.y + 10 && e.layerY > pos.y - 10) {
+	if (e.layerX > searchButton.x && e.layerX < searchButton.x + searchButton.width &&
+		e.layerY > searchButton.y && e.layerY < searchButton.y + searchButton.height) {
 			let name = prompt('Keresendő cikk neve:');
 			let index1;
 			let index2;
@@ -46,8 +45,6 @@ canvas.onclick = function (e) {
 					});
 				}
 			}
-			console.log(index1)
-			console.log(index2)
 			if (index1 !== undefined && index2 !== undefined) {
 				let xt = (plan.furnitures[index1].separators[index2].firstPoint.x + plan.furnitures[index1].separators[index2].secondPoint.x) / 2;
 				let yt = (plan.furnitures[index1].separators[index2].firstPoint.y + plan.furnitures[index1].separators[index2].secondPoint.y) / 2;
@@ -55,9 +52,7 @@ canvas.onclick = function (e) {
 				draw();
 			}
 	}
-	console.log(e.layerX, e.layerY)
 }
-
 
 /* function trilateration(P1, P2, P3) {
 
@@ -69,7 +64,7 @@ canvas.onclick = function (e) {
 	return {x, y}
 } */
 
-/* 3 pontot távolsággal Pi = {x,y,r,d} alakban */
+/* 3 pontot távolsággal Pi = {xi,yi,ri,di} alakban */
 function getPosition(P1, P2, P3) {
 	
 	const A = 2 * P2.x - 2 * P1.x
@@ -86,19 +81,31 @@ function getPosition(P1, P2, P3) {
 
 function init() {
 	scalePlan();
-	//setDistFromWalls();
-	console.log(plan.furnitures);
 	scaleFurnitures();
 	let arr = [{x:1,y:1,r: 5,d:10},{x:2,y:2,r:5, d:21},{x:3,y:3,r: 5,d:50},{x:4,y:4,r: 5,d:32},{x:1,y:2,r: 5,d:42},{x:1,y:2,r: 5,d:4},{x:1,y:2,r: 5,d:23},{x:1,y:2,r: 5,d:324}]; 
 	const max_array = strongestSigns(arr);
 	pos = getPosition(max_array[0],max_array[1],max_array[2])
-	pos = {x: 500, y: 400}
+	pos = {x: 550, y: 400}
 	draw();
 }
 
+const buttonsize = canvas.height * 0.1;
+
+let searchButton = {
+	width: buttonsize,
+	height: buttonsize,
+	x: canvas.width / 2 - buttonsize / 2,
+	y: canvas.height - canvas.height / 10 - canvas.height * 0.01
+}
+
+let imgMB = new Image();
+imgMB.onload = function () {
+	context.drawImage(imgMB, searchButton.x, searchButton.y, searchButton.width, searchButton.height);
+};
 
 const draw = function (e) {
 	context.clearRect(0, 0, canvas.width, canvas.height);
+	imgMB.src = "search.svg";
     for (let i = 0; i < plan.walls.length; ++i) {
         context.beginPath();
         context.moveTo(plan.walls[i].firstPoint.x, plan.walls[i].firstPoint.y);
@@ -133,9 +140,6 @@ const draw = function (e) {
 		context.arc(dest.x, dest.y, 5, 0, 2 * Math.PI);
 		context.fill();
 	}
-	
-	
-
 }
 
 init();

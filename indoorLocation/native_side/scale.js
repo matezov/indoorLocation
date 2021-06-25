@@ -1,3 +1,4 @@
+/* Ablakhoz igazítja a falakat */
 function scalePlan() {
     let n = 0, e = 0, s = 0, w = 0;	// sum(kül. irányú falak)
 	plan.walls.forEach(coord => {
@@ -160,7 +161,7 @@ function scalePlan() {
 		}
 	}
 }
-
+/* Ablakhoz igazítja a berendezéseket */
 function scaleFurnitures() {
 
     for (let i = 0; i < plan.furnitures.length; ++i) {
@@ -185,9 +186,6 @@ function scaleFurnitures() {
 
         const lor = leftOrRight(plan.furnitures[i].distance_from_walls.vertical);
         const vind = plan.furnitures[i].distance_from_walls.vertical.furniture_index;
-
-        console.log('h :',plan.furnitures[i].distance_from_walls.horizontal.wall_index)
-        console.log('v :',plan.furnitures[i].distance_from_walls.vertical.wall_index)
 
         if (lor === 'left') {
             switch (plan.furnitures[i].data[vind].direction) {

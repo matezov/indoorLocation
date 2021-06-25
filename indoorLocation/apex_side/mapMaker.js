@@ -465,7 +465,6 @@ function back() {
 		} else {
 			routes.splice(-1, 1);
 		}
-		
 		draw();
 	} else if (drawAll) {
 		context.clearRect(0, 0, canvas.width, canvas.height);

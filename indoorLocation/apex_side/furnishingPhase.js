@@ -38,14 +38,14 @@ function searchNearestWalls() {
         }
         
         for (let j = 2; j < coords.length; ++j) {
-            if (getDirection(furniture[i]) === 'vertical' && (coords[j].direction === 'North' || coords[j].direction === 'South') /*  &&
-                isNextToItVertically(coords[j], furniture[i]) === true */) {
+            if (getDirection(furniture[i]) === 'vertical' && (coords[j].direction === 'North' || coords[j].direction === 'South')  &&
+                isNextToItVertically(coords[j], furniture[i]) === true) {
                 if (distV > getDistance({x: coords[j].firstPoint.x, y: 0}, {x: furniture[i].firstPoint.x, y: 0})) {
                         indV = j;
                         distV = getDistance({x: coords[j].firstPoint.x, y: 0}, {x: furniture[i].firstPoint.x, y: 0});
                 }
-            } else if (getDirection(furniture[i]) === 'horizontal' && (coords[j].direction === 'East' || coords[j].direction === 'West')/*   &&
-                isNextToItHorizontally(coords[j], furniture[i]) === true  */) {
+            } else if (getDirection(furniture[i]) === 'horizontal' && (coords[j].direction === 'East' || coords[j].direction === 'West')  &&
+                isNextToItHorizontally(coords[j], furniture[i]) === true ) {
                 if (distH > getDistance({x: 0, y: coords[j].firstPoint.y}, {x: 0, y: furniture[i].firstPoint.y})) {
                         indH = j;
                         distH = getDistance({x: 0, y: coords[j].firstPoint.y}, {x: 0, y: furniture[i].firstPoint.y});
